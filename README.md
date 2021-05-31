@@ -6,49 +6,42 @@ A learning rate scheduler for Pytorch. This implements 2 modes:
 * Fixed cycle restart intervals, as seen in: 
 [\[Athiwaratkun et al 2019\]: There Are Many Consistent Explanations of Unlabeled Data: 
 Why You Should Average](https://arxiv.org/abs/1806.05594)
+  
+![Diagram](images/diagram.png)
 
 ### Parameters
 * ***optimizer*** *(Optimizer)* - Wrapped optimizer.
-* ***init_interval*** *(int)* -  Initial decay cycle interval.
-* ***min_lr*** *(float or iterable of floats)* - Minimal learning rate.
-* ***restart_multiplier*** *(float)* - Multiplication coefficient for 
- increasing cycle intervals, if this parameter is set, *restart_interval* 
- must be *None*.
-* ***restart_interval*** *(int)* - Restart interval for fixed 
-cycle intervals, if this parameter is set, *restart_multiplier* 
-must be *None*.
-* ***restart_lr*** *(float or iterable of floats)* - Optional, 
-the learning rate at cycle restarts,
-if not provided, initial learning rate will be used.
-* ***last_epoch*** *(int)* - Last epoch.
+* ***init_decay_epochs*** *(int)* -  Number of initial decay epochs.
+* ***min_decay_lr*** *(float or iterable of floats)* - Learning rate at the end of decay.
+* ***restart_interval*** *(int)* - Restart interval for fixed cycles. Set to None to disable cycles. Default: None.
+* ***restart_interval_multiplier*** *(float)* - Multiplication coefficient for geometrically increasing cycles. Default: None.
+* ***restart_lr*** *(float or iterable of floats)* - Learning rate when cycle restarts. If None, optimizer's learning rate will be used. Default: None.
+* ***warmup_epochs*** *(int)* - Number of warmup epochs. Set to None to disable warmup. Default: None.
+* ***warmup_start_lr*** *(float or iterable of floats)* - Learning rate at the beginning of warmup. Must be set if warmup_epochs is not None. Default: None.
+* ***last_epoch*** *(int)* - The index of the last epoch. This parameter is used when resuming a training job. Default: -1.
+* ***verbose*** *(bool)* - If True, prints a message to stdout for each update. Default: False.
 
 
-The learning rates are decayed for ***init_interval*** epochs from 
-initial values passed to *optimizer* to **min_lr** using 
-cosine decay function from *\[Loshchilov & Hutter 2017]*. 
+The learning rates are decayed for ***init_decay_epochs*** from 
+initial values passed to *optimizer* to the **min_decay_lr** using 
+cosine function. 
 The cycle is then restarted:
-* If ***restart_multiplier*** is provided, the cycle interval at 
+* If ***restart_interval_multiplier*** is provided, the cycle interval at 
  each restart is multiplied by given parameter, this corresponds
  to *\[Loshchilov & Hutter 2017]* implementation.
-* If ***restart_interval*** is provided, all subsequent cycles
- have fixed interval equal to provided value, this mode was 
-used in *\[Athiwaratkun et al 2019\]*.
- 
-Note that ***restart_multiplier*** and ***restart_interval***
-are mutually exclusive, i.e. if one is provided, 
-the other must be *None*.
-If both are *None*, learning rates will remain to be equal to 
-*min_lr* for remaining epochs.
+* If ***restart_interval_multiplier*** is *None*, all subsequent cycles
+ have fixed intervals, as in *\[Athiwaratkun et al 2019\]*.
+  
+If ***restart_interval*** is *None*, learning rate will remain to be 
+***min_decay_lr*** untill end of training.
 
-When cycle restarts, learning rates are reset to the values provided
-to *optimizer* unless ***restart_lr*** is provided, 
-in which case learning rates will be set to ***restart_lr***.
-
-***min_lr*** and ***restart_lr*** can be float or iterable of floats
+***min_decay_lr***, ***restart_lr*** and ***warmup_start_lr*** can be float or iterable of floats
 in case multiple parameter groups are provided to the *optimizer*. 
-In latter, *len(min_lr)* and *len(restart_lr)* must be 
+In latter case, *len(min_decay_lr)*, *len(restart_lr)* and *len(warmup_start_lr)* must be 
 equal to *len(optimizer.param_groups)*.
 
+### Usage examples
+Check out [example.ipynb](example.ipynb)
 
-### Usage example
-Usage examples are provided in [this notebook](example.ipynb).
+### Requirements
+* Pytorch 1.6.0+
